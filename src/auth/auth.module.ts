@@ -1,17 +1,18 @@
-import * as passport from "passport";
-import * as session from "express-session";
+import passport from "passport";
+import session from "express-session";
 
 import { Module, NestModule } from "@nestjs/common";
 
-import { PrismaSessionStore } from "@quixo3/prisma-session-store";
+import { PrismaClient as PrismaApiClient } from "@vertix-base-prisma-api";
 
-import { PrismaClient } from "@prisma/client";
+import { PrismaSessionStore } from "@quixo3/prisma-session-store";
 
 import { AuthController } from "./auth.controller";
 import { AuthService } from "./auth.service";
 
 import { AppHostService } from "@internal/app-host.service";
 import { AuthSessionSerializeService } from "@internal/auth/auth-session-serialize.service";
+import { AuthGuard } from "@internal/auth/auth.guard";
 import { DiscordStrategyService } from "@internal/discord/discord-strategy.service";
 
 import { AppHostModule } from "@internal/app-host.module";
@@ -23,6 +24,7 @@ import { TokenModule } from "@internal/token/token.module";
     providers: [
         DiscordStrategyService,
         AuthSessionSerializeService,
+        AuthGuard,
         AuthService
     ],
     imports: [
@@ -49,8 +51,10 @@ export class AuthModule implements NestModule {
                 resave: false,
                 saveUninitialized: false,
                 store: new PrismaSessionStore(
-                    new PrismaClient(),
+                    new PrismaApiClient(),
                     {
+                        logger: console,
+                        loggerLevel: "log",
                         checkPeriod: parseInt( process.env.API_SESSION_CHECK_INTERVAL ),
                         dbRecordIdIsSessionId: true,
                         dbRecordIdFunction: undefined,
