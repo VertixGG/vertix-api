@@ -1,28 +1,40 @@
 import { Injectable } from "@nestjs/common";
 
-import { PrismaService } from "@internal/prisma/prisma.service";
+import { PrismaApiService } from "@internal/prisma-api/prisma-api.service";
 
-import { ITokenData } from "@internal/token/token.interface";
+import { ITokenInputData, ITokenOutputData } from "@internal/token/token.interface";
 
 @Injectable()
 
 export class TokenService {
-    public constructor( private prisma: PrismaService ) {
+    public constructor( private prismaApi: PrismaApiService ) {
     }
 
     public async get( discordId: string ) {
-        return this.prisma.token.findUnique( { where: { discordId } } );
+        return this.prismaApi.token.findUnique( { where: { discordId } } );
     }
 
-    public async create( data: ITokenData ) {
-        return this.prisma.token.create( { data } );
+    public async create( inputData: ITokenInputData ) {
+        const data = this.ensureOutputData( inputData );
+
+        return this.prismaApi.token.create( { data } );
     }
 
-    public async update( data: ITokenData ) {
-        const discordId = data.discordId;
+    public async update( inputData: ITokenInputData ) {
+        const data = this.ensureOutputData( inputData ),
+            discordId = data.discordId;
 
         delete data.discordId;
 
-        return this.prisma.token.update( { where: { discordId }, data } );
+        return this.prismaApi.token.update( { where: { discordId }, data } );
+    }
+
+    private ensureOutputData( inputData: ITokenInputData ): ITokenOutputData {
+        return {
+            discordId: inputData.discordId,
+            accessToken: inputData.accessToken,
+            refreshToken: inputData.refreshToken,
+            expiresAt: new Date( Date.now() + inputData.expiresIn ),
+        };
     }
 }

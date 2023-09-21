@@ -1,9 +1,9 @@
 import { Module } from "@nestjs/common";
 
-import { PrismaModule } from "@internal/prisma/prisma.module";
+import { PrismaApiModule } from "@internal/prisma-api/prisma-api.module";
 import { TokenService } from "@internal/token/token.service";
 
-@Module({
+@Module( {
     exports: [
         TokenService,
     ],
@@ -11,8 +11,9 @@ import { TokenService } from "@internal/token/token.service";
         TokenService,
     ],
     imports: [
-        PrismaModule,
+        PrismaApiModule,
     ],
-})
+} )
 
-export class TokenModule {}
+export class TokenModule {
+}
